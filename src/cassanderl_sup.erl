@@ -1,10 +1,11 @@
 
 -module(cassanderl_sup).
-
 -behaviour(supervisor).
 
+-define(SUPERVISOR, ?MODULE).
+
 %% API
--export([start_link/0, pick_worker/0, call/2]).
+-export([start_link/0, pick_worker/0, expire_workers_cache/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -14,39 +15,56 @@
 %% ===================================================================
 
 start_link() ->
+    ets:new(cassanderl, [set, public, named_table, {read_concurrency, true}]),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+pick_worker() ->
+    Workers = get_workers(),
+    Size = ets:lookup_element(cassanderl, worker_pool_size, 2),
+    Index0 = erlang:phash2({self(), now()}, Size),
+    element(Index0 + 1, Workers).
+    
+expire_workers_cache() ->
+    ets:delete(cassanderl, workers).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
 
 init([]) ->
-    {ok, Size} = application:get_env(cassanderl, worker_pool_size),
-    Workers = [ worker_spec(I) || I <- lists:seq(1, Size) ],
+    bootstrap_ets(),
+    WorkerPoolSize = ets:lookup_element(cassanderl, worker_pool_size, 2),
+    Workers = [ worker_spec(I) || I <- lists:seq(1, WorkerPoolSize) ],
     {ok, {{one_for_one, 10, 1}, Workers}}.
+    
+%% ------------------------------------------------------------------
+%% Internal Function Definitions
+%% ------------------------------------------------------------------
 
-%% ===================================================================
-%% Internal API
-%% ===================================================================
-
+bootstrap_ets() ->
+    {ok, WorkerPoolSize} = application:get_env(cassanderl, worker_pool_size),
+    {ok, Low} = application:get_env(cassanderl, low_pending),
+    {ok, High} = application:get_env(cassanderl, high_pending),
+    ets:insert(cassanderl, {worker_pool_size, WorkerPoolSize}),
+    ets:insert(cassanderl, {low_pending, Low}),
+    ets:insert(cassanderl, {high_pending, High}),
+    ets:insert(cassanderl, {pending_requests, 0}).
+    
 worker_spec(N) ->
-    Name = list_to_atom("cassanderl_" ++ integer_to_list(N)),
-    {Name,
-        {cassanderl, start_link, [Name]},
+    {{cassanderl, N},
+        {cassanderl, start_link, []},
         permanent, 1000, worker,
         [cassanderl]
     }.
-
-pick_worker() ->
-    random:seed(erlang:now()),
-    {ok, Size} = application:get_env(cassanderl, worker_pool_size),
-    RandomN = random:uniform(Size),
-    list_to_existing_atom("cassanderl_" ++ integer_to_list(RandomN)).
-
-call(Function, Args) ->
-    Worker = pick_worker(),
-    gen_server:call(Worker, {call, Function, Args}).
-
-
-
-
+    
+get_workers() ->
+    try 
+        ets:lookup_element(cassanderl, workers, 2)    
+    catch
+        error:badarg ->
+            L = supervisor:which_children(?SUPERVISOR),
+            Pids = [ Child || {_Id, Child, _Type, _Modules} <- L, is_pid(Child) ],
+            PidsTuple = list_to_tuple(Pids),
+            ets:insert(cassanderl, {workers, PidsTuple}),
+            PidsTuple
+    end.

@@ -1,13 +1,18 @@
 {application, cassanderl, [
   {description, "Cassandra client"},
-  {vsn, "0.2"},
+  {vsn, "0.3"},
   {registered, []},
-  {applications, [kernel, stdlib]},
-  {mod, {cassanderl_app, []}},
+  {applications, [
+    kernel,
+    stdlib
+  ]},
+  {mod, { cassanderl_app, []}},
   {env, [
     {hostname, "127.0.0.1"},
     {port, 9160},
-    {keyspace, "Keyspace1"},
-    {worker_pool_size, 10}
+    {default_keyspace, "AdGear"},
+    {worker_pool_size, 400},
+    {low_pending, 3000},
+    {high_pending, 6000}
   ]}
 ]}.
