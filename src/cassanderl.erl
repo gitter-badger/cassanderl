@@ -2,8 +2,10 @@
 -behaviour(gen_server).
 -include("cassanderl.hrl").
 
--define(SERVER, ?MODULE).
 -define(DEFAULT_TIMEOUT, 500).
+-define(HIGH_PENDING, 10).
+-define(LOW_PENDING, 5).
+-define(SERVER, ?MODULE).
 
 -record(state, {
     hostname,
@@ -33,12 +35,12 @@ start_link() ->
     gen_server:start_link(?MODULE, [], []).
     
 call(Function, Args, Timeout) ->
-    case red() of
+    Worker = cassanderl_sup:pick_worker(),
+    case red(Worker) of
         true ->
             {error, too_busy};
         false ->
-            increase_pending_requests(),
-            Worker = cassanderl_sup:pick_worker(),
+            increase_pending_requests(Worker),
             Response = 
                 try gen_server:call(Worker, {call, Function, Args}, Timeout) of
                     Reply -> Reply
@@ -46,7 +48,7 @@ call(Function, Args, Timeout) ->
                     exit:_ ->
                         {error, timeout}
                 end, 
-            decrease_pending_requests(),
+            decrease_pending_requests(Worker),
             Response
     end.
     
@@ -94,6 +96,7 @@ describe_keyspace(Keyspace, Timeout) ->
 %% ------------------------------------------------------------------
 
 init(_Args) ->
+    ets:insert(cassanderl, {{self(), pending_requests}, 0}),
     {ok, Hostname} = application:get_env(cassanderl, hostname),
     {ok, Port} = application:get_env(cassanderl, port),
     State = #state {
@@ -110,11 +113,14 @@ handle_call(Msg, From, #state{hostname=Hostname, port=Port, client=undefined}=St
             handle_call(Msg, From, State#state{client=Client})
     end;
 handle_call({call, Function, Args}, _From, #state{client=Client}=State) ->
-    case thrift_client:call(Client, Function, Args) of
+    try thrift_client:call(Client, Function, Args) of
         {error, Reason} ->
             {reply, {error, Reason}, State#state{client=undefined}};
         {Client2, Response} ->
             {reply, Response, State#state{client=Client2}}
+    catch 
+        error:Reason ->
+            {reply, {error, Reason}, State#state{client=undefined}}
     end;
 handle_call(_Request, _From, State) ->
     {noreply, ok, State}.
@@ -144,17 +150,15 @@ new_thrift_client(Hostname, Port) ->
             undefined
     end.
     
-red() ->
-    Requests = ets:lookup_element(cassanderl, pending_requests, 2),
-    Low = ets:lookup_element(cassanderl, low_pending, 2),
-    High = ets:lookup_element(cassanderl, high_pending, 2),
+red(Worker) ->
+    Requests = ets:lookup_element(cassanderl, {Worker, pending_requests}, 2),
     case Requests of
-        _ when Low >= Requests -> 
+        _ when ?LOW_PENDING >= Requests -> 
             false;
-        _ when Requests >= High  ->
+        _ when Requests >= ?HIGH_PENDING  ->
             true;
         _ ->
-            random_drop(High - Requests)
+            random_drop(?HIGH_PENDING - Requests)
     end.
 
 random_drop(Distribution) ->
@@ -165,11 +169,11 @@ random_drop(Distribution) ->
             false
     end.
     
-increase_pending_requests() ->
-    ets:update_counter(cassanderl, pending_requests, 1).
+increase_pending_requests(Worker) ->
+    ets:update_counter(cassanderl, {Worker, pending_requests}, 1).
     
-decrease_pending_requests() ->
-    ets:update_counter(cassanderl, pending_requests, -1).
+decrease_pending_requests(Worker) ->
+    ets:update_counter(cassanderl, {Worker, pending_requests}, -1).
     
             
 

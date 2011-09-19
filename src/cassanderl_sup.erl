@@ -15,7 +15,7 @@
 %% ===================================================================
 
 start_link() ->
-    ets:new(cassanderl, [set, public, named_table, {read_concurrency, true}]),
+    bootstrap_ets(),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 pick_worker() ->
@@ -32,7 +32,6 @@ expire_workers_cache() ->
 %% ===================================================================
 
 init([]) ->
-    bootstrap_ets(),
     WorkerPoolSize = ets:lookup_element(cassanderl, worker_pool_size, 2),
     Workers = [ worker_spec(I) || I <- lists:seq(1, WorkerPoolSize) ],
     {ok, {{one_for_one, 10, 1}, Workers}}.
@@ -42,13 +41,9 @@ init([]) ->
 %% ------------------------------------------------------------------
 
 bootstrap_ets() ->
+    ets:new(cassanderl, [set, public, named_table, {read_concurrency, true}]),
     {ok, WorkerPoolSize} = application:get_env(cassanderl, worker_pool_size),
-    {ok, Low} = application:get_env(cassanderl, low_pending),
-    {ok, High} = application:get_env(cassanderl, high_pending),
-    ets:insert(cassanderl, {worker_pool_size, WorkerPoolSize}),
-    ets:insert(cassanderl, {low_pending, Low}),
-    ets:insert(cassanderl, {high_pending, High}),
-    ets:insert(cassanderl, {pending_requests, 0}).
+    ets:insert(cassanderl, {worker_pool_size, WorkerPoolSize}).
     
 worker_spec(N) ->
     {{cassanderl, N},
