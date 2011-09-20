@@ -116,7 +116,7 @@ handle_call(Msg, From, #state{hostname=Hostname, port=Port, keyspace=Keyspace, c
             handle_call(Msg, From, State#state{client=Client})
     end;
 handle_call({call, Function, Args}, _From, #state{client=Client}=State) ->
-     try thrift_client:call(Client, Function, Args) of
+    try thrift_client:call(Client, Function, Args) of
         {error, Reason} ->
             {reply, {error, Reason}, State#state{client=undefined}};
         {Client2, Response} ->
