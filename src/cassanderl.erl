@@ -10,6 +10,7 @@
 -record(state, {
     hostname,
     port,
+    keyspace,
     client
 }).
 
@@ -99,21 +100,23 @@ init(_Args) ->
     ets:insert(cassanderl, {{self(), pending_requests}, 0}),
     {ok, Hostname} = application:get_env(cassanderl, hostname),
     {ok, Port} = application:get_env(cassanderl, port),
+    {ok, Keyspace} = application:get_env(cassanderl, default_keyspace),
     State = #state {
         hostname = Hostname,
-        port = Port  
+        port = Port,
+        keyspace = Keyspace
     },
     {ok, State}.
 
-handle_call(Msg, From, #state{hostname=Hostname, port=Port, client=undefined}=State) ->
-    case new_thrift_client(Hostname, Port) of 
+handle_call(Msg, From, #state{hostname=Hostname, port=Port, keyspace=Keyspace, client=undefined}=State) ->
+    case new_thrift_client(Hostname, Port, Keyspace) of 
         undefined ->
             {reply, {error, econnrefused}, State};
         Client ->
             handle_call(Msg, From, State#state{client=Client})
     end;
 handle_call({call, Function, Args}, _From, #state{client=Client}=State) ->
-    try thrift_client:call(Client, Function, Args) of
+     try thrift_client:call(Client, Function, Args) of
         {error, Reason} ->
             {reply, {error, Reason}, State#state{client=undefined}};
         {Client2, Response} ->
@@ -141,14 +144,24 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
-new_thrift_client(Hostname, Port) ->
+new_thrift_client(Hostname, Port, Keyspace) ->
     case thrift_client_util:new(Hostname, Port, cassandra_thrift, [{framed, true}]) of
         {ok, Client} ->
-            {Client2, {ok, ok}} = thrift_client:call(Client, set_keyspace, ["AdGear"]),
-            Client2;
+            case Keyspace of
+                undefined ->
+                    ok;
+                _ ->
+                    {Client2, {ok, ok}} = thrift_client:call(Client, set_keyspace, [Keyspace]),
+                    Client2
+            end;
         {error, _} ->
             undefined
     end.
+    
+%% ------------------------------------------------------------------
+%% Random Early Drop
+%% http://en.wikipedia.org/wiki/Random_early_detection
+%% ------------------------------------------------------------------
     
 red(Worker) ->
     Requests = ets:lookup_element(cassanderl, {Worker, pending_requests}, 2),
@@ -174,7 +187,4 @@ increase_pending_requests(Worker) ->
     
 decrease_pending_requests(Worker) ->
     ets:update_counter(cassanderl, {Worker, pending_requests}, -1).
-    
-            
-
     

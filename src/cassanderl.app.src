@@ -11,8 +11,6 @@
     {hostname, "127.0.0.1"},
     {port, 9160},
     {default_keyspace, "AdGear"},
-    {worker_pool_size, 400},
-    {low_pending, 3000},
-    {high_pending, 6000}
+    {worker_pool_size, 1}
   ]}
 ]}.
