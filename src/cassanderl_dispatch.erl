@@ -64,7 +64,7 @@ start_client(Hostname, Port, Keyspace) ->
                     ok;
                 _ ->
                     {Client2, {ok, ok}} = thrift_client:call(Client, set_keyspace, [Keyspace]),
-                    Client2
+                    {ok, Client2}
             end;
         {error, _} ->
             undefined

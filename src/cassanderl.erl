@@ -20,9 +20,12 @@ call(Info, Function, Args) ->
                 {error, Reason} ->
                     dispcount:checkin(Info, Ref, died),
                     {error, Reason};
+                {Client2, Response = {exception, _}} ->
+                    dispcount:checkin(Info, Ref, Client2),
+                    Response;
                 {Client2, Response} ->
                     dispcount:checkin(Info, Ref, Client2),
-                    Response
+                    {ok, Response}
             catch
                 error:Reason ->
                     dispcount:checkin(Info, Ref, died),
