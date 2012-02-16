@@ -1,6 +1,6 @@
 {application, cassanderl, [
   {description, "Cassandra client"},
-  {vsn, "0.3"},
+  {vsn, "0.4"},
   {registered, []},
   {applications, [
     kernel,
