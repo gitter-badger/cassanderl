@@ -4,15 +4,14 @@
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------
--export([call/3, set_keyspace/2, get/6, insert/9, describe_keyspace/2]).
+-export([get_info/0, call/3, set_keyspace/2, get/6, insert/9, describe_keyspace/2]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
-%start_link() ->
-%    gen_server:start_link(?MODULE, [], []).
-%    
+get_info() ->
+    cassanderl_sup:get_info().
 
 call(Info, Function, Args) ->
     case dispcount:checkout(Info) of
