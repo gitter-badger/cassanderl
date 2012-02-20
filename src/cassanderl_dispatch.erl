@@ -5,8 +5,6 @@
 -export([init/1, checkout/2, checkin/2, dead/1, handle_info/2,
          code_change/3, terminate/2]).
 
--define(DEFAULT_TIMEOUT, 500).
-
 -record(state, {hostname,
                 port,
                 keyspace,
@@ -18,9 +16,21 @@
 init([]) ->
     {ok, Hostname} = application:get_env(cassanderl, hostname),
     {ok, Port} = application:get_env(cassanderl, port),
-    {ok, Keyspace} = application:get_env(cassanderl, default_keyspace),
-    {ok, Client} = start_client(Hostname, Port, Keyspace),
-    State = #state{
+    Keyspace =
+        case application:get_env(cassanderl, default_keyspace) of
+            undefined ->
+                undefined;
+            {ok, DefaultKeyspace} ->
+                DefaultKeyspace
+        end,
+    Client =
+        case start_client(Hostname, Port, Keyspace) of
+            {ok, Client2} ->
+                Client2;
+            {error, _Error} ->
+                undefined
+        end,
+    State = #state {
         hostname = Hostname,
         port = Port,
         keyspace = Keyspace,
@@ -28,6 +38,16 @@ init([]) ->
     },
     {ok, State}.
 
+checkout(_From, State = #state{hostname=HostName,
+                               port=Port,
+                               keyspace=Keyspace,
+                               client=undefined}) ->
+    case start_client(HostName, Port, Keyspace) of
+        {ok, Client} ->
+            {ok, Client, State#state{client=Client}};
+        {error, Error} ->
+            {error, Error, State}
+    end;
 checkout(_From, State = #state{client=Client}) ->
     {ok, Client, State}.
 
@@ -38,11 +58,8 @@ checkin(died, State) ->
 checkin(Client, State) ->
     {ok, State#state{client=Client}}.
 
-dead(State = #state{hostname=HostName,
-                    port=Port,
-                    keyspace=Keyspace}) ->
-    {ok, Client} = start_client(HostName, Port, Keyspace),
-    {ok, State#state{client=Client}}.
+dead(State) ->
+    {ok, State#state{client=undefined}}.
 
 handle_info(_Msg, State) ->
     {ok, State}.
@@ -61,12 +78,16 @@ start_client(Hostname, Port, Keyspace) ->
         {ok, Client} ->
             case Keyspace of
                 undefined ->
-                    ok;
+                    {ok, Client};
                 _ ->
-                    {Client2, {ok, ok}} = thrift_client:call(Client, set_keyspace, [Keyspace]),
-                    {ok, Client2}
+                    case thrift_client:call(Client, set_keyspace, [Keyspace]) of
+                        {Client2, {exception, _Exception}} ->
+                            {ok, Client2};
+                        {Client2, {ok, ok}} ->
+                            {ok, Client2}
+                    end
             end;
-        {error, _} ->
-            undefined
+        {error, Error} ->
+            {error, Error}
     end.
 

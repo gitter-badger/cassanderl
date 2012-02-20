@@ -1,4 +1,3 @@
-
 -module(cassanderl_sup).
 -behaviour(supervisor).
 
@@ -36,6 +35,9 @@ start_dispatcher() ->
     ok = dispcount:start_dispatch(
         cassanderl_dispatch,
         {cassanderl_dispatch, []},
-        [{restart,permanent},{shutdown,1000},
-         {maxr,10},{maxt,1},{resources,Num}]
+        [{restart,permanent},
+         {shutdown,1000},
+         {maxr,10},
+         {maxt,1},
+         {resources,Num}]
     ).
