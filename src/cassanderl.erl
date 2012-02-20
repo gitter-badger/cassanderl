@@ -16,17 +16,22 @@ get_info() ->
 call(Info, Function, Args) ->
     case dispcount:checkout(Info) of
         {ok, Ref, Client} ->
+            {ok, BaseKey} = application:get_env(adgear_gateway, statsderl_key),
+            Timestamp = os:timestamp(),
             try thrift_client:call(Client, Function, Args) of
                 {error, Reason} ->
                     dispcount:checkin(Info, Ref, died),
                     {error, Reason};
                 {Client2, Response = {exception, _}} ->
+                    statsderl:timing([BaseKey,"cassanderl.call.exception"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
                     dispcount:checkin(Info, Ref, Client2),
                     Response;
                 {Client2, Response = {error, _}} ->
+                    statsderl:timing([BaseKey,"cassanderl.call.error"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
                     dispcount:checkin(Info, Ref, Client2),
                     Response;
                 {Client2, Response} ->
+                    statsderl:timing([BaseKey,"cassanderl.call.ok"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
                     dispcount:checkin(Info, Ref, Client2),
                     Response
             catch
