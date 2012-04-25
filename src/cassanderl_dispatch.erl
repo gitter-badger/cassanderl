@@ -14,15 +14,9 @@
 %%% CALLBACK MODULES %%%
 %%%%%%%%%%%%%%%%%%%%%%%%
 init([]) ->
-    {ok, Hostname} = application:get_env(cassanderl, hostname),
-    {ok, Port} = application:get_env(cassanderl, port),
-    Keyspace =
-        case application:get_env(cassanderl, default_keyspace) of
-            undefined ->
-                undefined;
-            {ok, DefaultKeyspace} ->
-                DefaultKeyspace
-        end,
+    Hostname = env(cassanderl, hostname),
+    Port = env(cassanderl, port),
+    Keyspace = env(cassanderl, default_keyspace, undefined),
     Client =
         case start_client(Hostname, Port, Keyspace) of
             {ok, Client2} ->
@@ -80,10 +74,12 @@ start_client(Hostname, Port, Keyspace) ->
                 undefined ->
                     {ok, Client};
                 _ ->
-                    case thrift_client:call(Client, set_keyspace, [Keyspace]) of
-                        {Client2, {exception, _Exception}} ->
-                            {ok, Client2};
+                    case cassanderl:call(Client, set_keyspace, [Keyspace]) of
+                        {undefined, Response} ->
+                            Response;
                         {Client2, {ok, ok}} ->
+                            {ok, Client2};
+                        {Client2, _} ->
                             {ok, Client2}
                     end
             end;
@@ -91,3 +87,13 @@ start_client(Hostname, Port, Keyspace) ->
             {error, Error}
     end.
 
+env(Application, Par) ->
+    case application:get_env(Application, Par) of
+        {ok, Value} -> Value
+    end.
+
+env(Application, Par, Default) ->
+    case application:get_env(Application, Par) of
+        {ok, Value} -> Value;
+        undefined -> Default
+    end.

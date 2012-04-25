@@ -10,7 +10,7 @@
   {env, [
     {hostname, "127.0.0.1"},
     {port, 9160},
-    {default_keyspace, "keyspace1"},
-    {worker_pool_size, 30}
+    {default_keyspace, "test"},
+    {worker_pool_size, 1}
   ]}
 ]}.
