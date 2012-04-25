@@ -33,24 +33,23 @@ call(Info = {config, _, _, _, _, _}, Function, Args) ->
     end;
 
 call(Client = {tclient, _, _, _}, Function, Args) ->
-    {ok, BaseKey} = application:get_env(adgear_gateway, statsderl_key),
     Timestamp = os:timestamp(),
     try thrift_client:call(Client, Function, Args) of
         {Client2, Response = {ok, _}} ->
-            statsderl:timing([BaseKey,"cassanderl.call.ok"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
+            statsderl:timing(["cassanderl.call.ok"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
             {Client2, Response};
         {_,  Response = {error, econnrefused}} ->
             {undefined, Response};
         {_,  Response = {error, closed}} ->
             {undefined, Response};
         {Client2, Response = {error, _}} ->
-            statsderl:timing([BaseKey,"cassanderl.call.error"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
+            statsderl:timing(["cassanderl.call.error"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
             {Client2, Response}
     catch
         Exception:Reason ->
             case {Exception, Reason} of
                 {throw, {Client2, Response = {exception, _}}} ->
-                    statsderl:timing([BaseKey,"cassanderl.call.exception"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
+                    statsderl:timing(["cassanderl.call.exception"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
                     {Client2, Response}
             end
     end.
