@@ -36,7 +36,7 @@ call(Client = {tclient, _, _, _}, Function, Args) ->
     Timestamp = os:timestamp(),
     try thrift_client:call(Client, Function, Args) of
         {Client2, Response = {ok, _}} ->
-            statsderl:timing(["cassanderl.call.ok"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
+            statsderl:timing(["cassanderl.call.ok"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.10),
             {Client2, Response};
         {_,  Response = {error, econnrefused}} ->
             {undefined, Response};
