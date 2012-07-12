@@ -68,4 +68,3 @@ want.
 
 Finally, we increment a counter on the *Gotham City* row. We spotted
 some Batmans. The last parameter is the consistency level desired.
-
