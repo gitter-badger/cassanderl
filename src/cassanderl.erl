@@ -4,7 +4,17 @@
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------
--export([get_info/0, call/2, call/3, set_keyspace/2, get/6, insert/9, describe_keyspace/2]).
+-export([column_parent/1, column_parent/2,
+         get_info/0
+        ]).
+
+-export([add/5,
+         call/2, call/3,
+         describe_keyspace/2,
+         get/6,
+         insert/9,
+         set_keyspace/2
+        ]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -12,6 +22,13 @@
 
 get_info() ->
     cassanderl_sup:get_info().
+
+column_parent(Family) ->
+    #columnParent { column_family = Family }.
+
+column_parent(Super, Family) ->
+    #columnParent { super_column = Super,
+                    column_family = Family }.
 
 call(Function, Args) ->
     {ok, Config} = get_info(),
@@ -76,3 +93,10 @@ insert(Info, Key, ColumnFamily, SuperColumn, Name, Value, Timestamp, Ttl, Consis
 
 describe_keyspace(Info, Keyspace) ->
     call(Info, describe_keyspace, [Keyspace]).
+
+add(Config, Key, ColumnParent, {Name, Value}, ConsistencyLevel) ->
+    add(Config, Key, ColumnParent, #counterColumn {
+      name = Name,
+      value = Value }, ConsistencyLevel);
+add(Config, Key, ColumnParent, #counterColumn{} = Col, ConsistencyLevel) ->
+    call(Config, add, [Key, ColumnParent, Col, ConsistencyLevel]).
