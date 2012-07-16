@@ -5,13 +5,15 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 -export([column_parent/1, column_parent/2,
-         get_info/0
+         get_info/0,
+         slice/2
         ]).
 
 -export([add/5,
          call/2, call/3,
          describe_keyspace/2,
          get/6,
+         get_slice/5,
          insert/9,
          set_keyspace/2
         ]).
@@ -29,6 +31,13 @@ column_parent(Family) ->
 column_parent(Super, Family) ->
     #columnParent { super_column = Super,
                     column_family = Family }.
+
+%% @doc Create a slice_range object for slice queries
+%% @end
+slice(Start, End) ->
+    R = #sliceRange { start = Start, finish = End, count = 1000 },
+    #slicePredicate { slice_range = R,
+                      column_names = undefined }.
 
 call(Function, Args) ->
     {ok, Config} = get_info(),
@@ -100,3 +109,8 @@ add(Config, Key, ColumnParent, {Name, Value}, ConsistencyLevel) ->
       value = Value }, ConsistencyLevel);
 add(Config, Key, ColumnParent, #counterColumn{} = Col, ConsistencyLevel) ->
     call(Config, add, [Key, ColumnParent, Col, ConsistencyLevel]).
+
+%% @doc Call Cassandras `get_slice' command.
+%% @end
+get_slice(Config, Key, ColumnParent, SliceRange, Consistency) ->
+    call(Config, get_slice, [Key, ColumnParent, SliceRange, Consistency]).
