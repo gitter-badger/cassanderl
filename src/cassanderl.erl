@@ -13,7 +13,8 @@
          describe_keyspace/2,
          get/6,
          insert/9,
-         set_keyspace/2
+         set_keyspace/2,
+         with_cassandra/2
         ]).
 
 %% ------------------------------------------------------------------
@@ -34,6 +35,36 @@ call(Function, Args) ->
     {ok, Config} = get_info(),
     call(Config, Function, Args).
 
+%% @doc Execute a set of Cassandra commands with the same connection
+%% <p>This call allows you to execute several cassandra calls on the
+%% same client connection. The call checks out a resource and then it
+%% passes that resource to a function of your choosing. The function
+%% can issue thrift_client calls directly to the underlying stack and
+%% returns a pair {NewC, Response}.</p>
+%% <p>The calling convention is that you end by returning the final
+%% Client state for checkin into the dispcount pool again.</p>
+%% @end
+with_cassandra(Config, F) ->
+    case dispcount:checkout(Config) of
+        {ok, Ref, Client} ->
+            try F(Client) of
+                undefined ->
+                    dispcount:checkin(Config, Ref, died),
+                    ok;
+                Client2 ->
+                    dispcount:checkin(Config, Ref, Client2),
+                    ok
+            catch
+                C:E ->
+                    dispcount:checkin(Config, Ref, died),
+                    %% Re-raise the exception
+                    ST = erlang:get_stacktrace(),
+                    erlang:raise(C, E, ST)
+            end;
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
 call(Info = {config, _, _, _, _, _}, Function, Args) ->
     case dispcount:checkout(Info) of
         {ok, Ref, Client} ->
@@ -48,7 +79,6 @@ call(Info = {config, _, _, _, _, _}, Function, Args) ->
         {error, Reason} ->
             {error, Reason}
     end;
-
 call(Client = {tclient, _, _, _}, Function, Args) ->
     try thrift_client:call(Client, Function, Args) of
         {Client2, Response = {ok, _}} ->
