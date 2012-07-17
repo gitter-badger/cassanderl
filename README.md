@@ -68,3 +68,17 @@ want.
 
 Finally, we increment a counter on the *Gotham City* row. We spotted
 some Batmans. The last parameter is the consistency level desired.
+
+### Get Slice ###
+
+A slice is a range of columns ordered by some ordering function
+(Usually lexicographic on the string). To get all superheroes in
+gotham city, we
+could do:
+
+      SliceRange = slice(<<"a">>, <<"z">>),
+      get_slice(Config, <<"gotham_city">>, CP, SliceRange, 1)
+
+to obtain Batman, Catwoman (Rrrrrawr!), Superman, Poison Ivy, and so
+on. Ok, some of those may not be superheroes exactly, but surely you
+get the idea.
