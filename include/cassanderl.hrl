@@ -39,7 +39,7 @@
 
 %% struct counterColumn
 
--record(counterColumn, {name = undefined :: string(), 
+-record(counterColumn, {name = undefined :: string() | binary(),
                         value = undefined :: integer()}).
 
 %% struct counterSuperColumn
@@ -95,14 +95,14 @@
 
 %% struct sliceRange
 
--record(sliceRange, {start = undefined :: string(), 
-                     finish = undefined :: string(), 
-                     reversed = false :: boolean(), 
+-record(sliceRange, {start = undefined :: string() | binary(),
+                     finish = undefined :: string() | binary(),
+                     reversed = false :: boolean(),
                      count = 100 :: integer()}).
 
 %% struct slicePredicate
 
--record(slicePredicate, {column_names = [] :: list(), 
+-record(slicePredicate, {column_names = [] :: list() | undefined,
                          slice_range = #sliceRange{} :: #sliceRange{}}).
 
 %% struct indexExpression
