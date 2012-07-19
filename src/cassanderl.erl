@@ -60,9 +60,15 @@ with_cassandra(Config, F) ->
                 undefined ->
                     dispcount:checkin(Config, Ref, died),
                     ok;
-                Client2 ->
+                {error, Reason} ->
+                    dispcount:checkin(Config, Ref, died),
+                    {error, {'fun', Reason}};
+                {ok, Client2} ->
                     dispcount:checkin(Config, Ref, Client2),
-                    ok
+                    ok;
+                {ok, Res, Client2} ->
+                    dispcount:checkin(Config, Ref, Client2),
+                    {ok, Res}
             catch
                 C:E ->
                     dispcount:checkin(Config, Ref, died),
