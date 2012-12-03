@@ -52,14 +52,19 @@ checkin(died, State) ->
 checkin(Client, State) ->
     {ok, State#state{client=Client}}.
 
-dead(State) ->
+dead(State = #state{client=undefined}) ->
+    {ok, State};
+dead(State = #state{client=Client}) ->
+    thrift_client:close(Client),
     {ok, State#state{client=undefined}}.
 
 handle_info(_Msg, State) ->
     {ok, State}.
 
-terminate(_,_) ->
-    ok.
+terminate(_, #state{client=undefined}) ->
+    ok;
+terminate(_, #state{client=Client}) ->
+    thrift_client:close(Client).
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

@@ -24,20 +24,5 @@ get_info() ->
 %% ===================================================================
 
 init([]) ->
-    start_dispatcher(),
     {ok, {{one_for_one, 10, 1}, []}}.
 
-%% ------------------------------------------------------------------
-%% Internal Function Definitions
-%% ------------------------------------------------------------------
-start_dispatcher() ->
-    {ok, Num} = application:get_env(cassanderl,worker_pool_size),
-    ok = dispcount:start_dispatch(
-        cassanderl_dispatch,
-        {cassanderl_dispatch, []},
-        [{restart,permanent},
-         {shutdown,1000},
-         {maxr,10},
-         {maxt,1},
-         {resources,Num}]
-    ).
