@@ -24,7 +24,7 @@
 %% ------------------------------------------------------------------
 
 get_info() ->
-    cassanderl_sup:get_info().
+    cassanderl_app:get_info().
 
 column_parent(Family) ->
     #columnParent { column_family = Family }.
