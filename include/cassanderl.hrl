@@ -27,24 +27,24 @@
 
 %% struct column
 
--record(column, {name = undefined :: string(), 
-                 value = undefined :: string(), 
-                 timestamp = undefined :: integer(), 
-                 ttl = undefined :: integer()}).
+-record(column, {name :: string(), 
+                 value :: string(), 
+                 timestamp :: integer(), 
+                 ttl :: integer()}).
 
 %% struct superColumn
 
--record(superColumn, {name = undefined :: string(), 
+-record(superColumn, {name :: string(), 
                       columns = [] :: list()}).
 
 %% struct counterColumn
 
--record(counterColumn, {name = undefined :: string() | binary(),
-                        value = undefined :: integer()}).
+-record(counterColumn, {name :: string() | binary(),
+                        value :: integer()}).
 
 %% struct counterSuperColumn
 
--record(counterSuperColumn, {name = undefined :: string(), 
+-record(counterSuperColumn, {name :: string(), 
                              columns = [] :: list()}).
 
 %% struct columnOrSuperColumn
@@ -60,7 +60,7 @@
 
 %% struct invalidRequestException
 
--record(invalidRequestException, {why = undefined :: string()}).
+-record(invalidRequestException, {why :: string()}).
 
 %% struct unavailableException
 
@@ -72,11 +72,11 @@
 
 %% struct authenticationException
 
--record(authenticationException, {why = undefined :: string()}).
+-record(authenticationException, {why :: string()}).
 
 %% struct authorizationException
 
--record(authorizationException, {why = undefined :: string()}).
+-record(authorizationException, {why :: string()}).
 
 %% struct schemaDisagreementException
 
@@ -84,19 +84,19 @@
 
 %% struct columnParent
 
--record(columnParent, {column_family = undefined :: string(), 
-                       super_column = undefined :: string()}).
+-record(columnParent, {column_family :: string(), 
+                       super_column :: string()}).
 
 %% struct columnPath
 
--record(columnPath, {column_family = undefined :: string(), 
-                     super_column = undefined :: string(), 
-                     column = undefined :: string()}).
+-record(columnPath, {column_family :: string(), 
+                     super_column :: string(), 
+                     column :: string()}).
 
 %% struct sliceRange
 
--record(sliceRange, {start = undefined :: string() | binary(),
-                     finish = undefined :: string() | binary(),
+-record(sliceRange, {start :: string() | binary(),
+                     finish :: string() | binary(),
                      reversed = false :: boolean(),
                      count = 100 :: integer()}).
 
@@ -107,38 +107,38 @@
 
 %% struct indexExpression
 
--record(indexExpression, {column_name = undefined :: string(), 
-                          op = undefined :: integer(), 
-                          value = undefined :: string()}).
+-record(indexExpression, {column_name :: string(), 
+                          op :: integer(), 
+                          value :: string()}).
 
 %% struct indexClause
 
 -record(indexClause, {expressions = [] :: list(), 
-                      start_key = undefined :: string(), 
+                      start_key :: string(), 
                       count = 100 :: integer()}).
 
 %% struct keyRange
 
--record(keyRange, {start_key = undefined :: string(), 
-                   end_key = undefined :: string(), 
-                   start_token = undefined :: string(), 
-                   end_token = undefined :: string(), 
+-record(keyRange, {start_key :: string(), 
+                   end_key :: string(), 
+                   start_token :: string(), 
+                   end_token :: string(), 
                    count = 100 :: integer()}).
 
 %% struct keySlice
 
--record(keySlice, {key = undefined :: string(), 
+-record(keySlice, {key :: string(), 
                    columns = [] :: list()}).
 
 %% struct keyCount
 
--record(keyCount, {key = undefined :: string(), 
-                   count = undefined :: integer()}).
+-record(keyCount, {key :: string(), 
+                   count :: integer()}).
 
 %% struct deletion
 
--record(deletion, {timestamp = undefined :: integer(), 
-                   super_column = undefined :: string(), 
+-record(deletion, {timestamp :: integer(), 
+                   super_column :: string(), 
                    predicate = #slicePredicate{} :: #slicePredicate{}}).
 
 %% struct mutation
@@ -148,8 +148,8 @@
 
 %% struct tokenRange
 
--record(tokenRange, {start_token = undefined :: string(), 
-                     end_token = undefined :: string(), 
+-record(tokenRange, {start_token :: string(), 
+                     end_token :: string(), 
                      endpoints = [] :: list()}).
 
 %% struct authenticationRequest
@@ -158,57 +158,57 @@
 
 %% struct columnDef
 
--record(columnDef, {name = undefined :: string(), 
-                    validation_class = undefined :: string(), 
-                    index_type = undefined :: integer(), 
-                    index_name = undefined :: string()}).
+-record(columnDef, {name :: string(), 
+                    validation_class :: string(), 
+                    index_type :: integer(), 
+                    index_name :: string()}).
 
 %% struct cfDef
 
--record(cfDef, {keyspace = undefined :: string(), 
-                name = undefined :: string(), 
+-record(cfDef, {keyspace :: string(), 
+                name :: string(), 
                 column_type = "Standard" :: string(), 
                 comparator_type = "BytesType" :: string(), 
-                subcomparator_type = undefined :: string(), 
-                comment = undefined :: string(), 
+                subcomparator_type :: string(), 
+                comment :: string(), 
                 row_cache_size = 0 :: float(), 
                 key_cache_size = 200000 :: float(), 
                 read_repair_chance = 1 :: float(), 
                 column_metadata = [] :: list(), 
-                gc_grace_seconds = undefined :: integer(), 
-                default_validation_class = undefined :: string(), 
-                id = undefined :: integer(), 
-                min_compaction_threshold = undefined :: integer(), 
-                max_compaction_threshold = undefined :: integer(), 
-                row_cache_save_period_in_seconds = undefined :: integer(), 
-                key_cache_save_period_in_seconds = undefined :: integer(), 
-                memtable_flush_after_mins = undefined :: integer(), 
-                memtable_throughput_in_mb = undefined :: integer(), 
-                memtable_operations_in_millions = undefined :: float(), 
-                replicate_on_write = undefined :: boolean(), 
-                merge_shards_chance = undefined :: float(), 
-                key_validation_class = undefined :: string(), 
+                gc_grace_seconds :: integer(), 
+                default_validation_class :: string(), 
+                id :: integer(), 
+                min_compaction_threshold :: integer(), 
+                max_compaction_threshold :: integer(), 
+                row_cache_save_period_in_seconds :: integer(), 
+                key_cache_save_period_in_seconds :: integer(), 
+                memtable_flush_after_mins :: integer(), 
+                memtable_throughput_in_mb :: integer(), 
+                memtable_operations_in_millions :: float(), 
+                replicate_on_write :: boolean(), 
+                merge_shards_chance :: float(), 
+                key_validation_class :: string(), 
                 row_cache_provider = "org.apache.cassandra.cache.ConcurrentLinkedHashCacheProvider" :: string(), 
-                key_alias = undefined :: string()}).
+                key_alias :: string()}).
 
 %% struct ksDef
 
--record(ksDef, {name = undefined :: string(), 
-                strategy_class = undefined :: string(), 
+-record(ksDef, {name :: string(), 
+                strategy_class :: string(), 
                 strategy_options = dict:new() :: dict(), 
-                replication_factor = undefined :: integer(), 
+                replication_factor :: integer(), 
                 cf_defs = [] :: list(), 
                 durable_writes = true :: boolean()}).
 
 %% struct cqlRow
 
--record(cqlRow, {key = undefined :: string(), 
+-record(cqlRow, {key :: string(), 
                  columns = [] :: list()}).
 
 %% struct cqlResult
 
--record(cqlResult, {type = undefined :: integer(), 
+-record(cqlResult, {type :: integer(), 
                     rows = [] :: list(), 
-                    num = undefined :: integer()}).
+                    num :: integer()}).
 
 -endif.
