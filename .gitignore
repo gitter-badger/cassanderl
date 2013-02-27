@@ -4,3 +4,5 @@ priv
 ebin
 *.o
 *.beam
+*.swp
+*.swo
