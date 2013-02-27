@@ -27,14 +27,14 @@
 
 %% struct column
 
--record(column, {name :: string(), 
-                 value :: string(), 
-                 timestamp :: integer(), 
+-record(column, {name :: string() | binary(),
+                 value :: string() | binary(),
+                 timestamp :: integer(),
                  ttl :: integer()}).
 
 %% struct superColumn
 
--record(superColumn, {name :: string(), 
+-record(superColumn, {name :: string() | binary(),
                       columns = [] :: list()}).
 
 %% struct counterColumn
@@ -44,7 +44,7 @@
 
 %% struct counterSuperColumn
 
--record(counterSuperColumn, {name :: string(), 
+-record(counterSuperColumn, {name :: string() | binary(),
                              columns = [] :: list()}).
 
 %% struct columnOrSuperColumn
@@ -103,7 +103,7 @@
 %% struct slicePredicate
 
 -record(slicePredicate, {column_names = [] :: list() | undefined,
-                         slice_range = #sliceRange{} :: #sliceRange{}}).
+                         slice_range = #sliceRange{} :: #sliceRange{} | undefined}).
 
 %% struct indexExpression
 
