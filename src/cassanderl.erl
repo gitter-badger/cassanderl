@@ -19,6 +19,8 @@
          with_cassandra/2
         ]).
 
+-define(SAMPLING, 0.005).
+
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
@@ -98,20 +100,20 @@ call(Client = {tclient, _, _, _}, Function, Args) ->
     Timestamp = os:timestamp(),
     try thrift_client:call(Client, Function, Args) of
         {Client2, Response = {ok, _}} ->
-            statsderl:timing(["cassanderl.call.ok"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.10),
+            statsderl:timing(["cassanderl.call.ok"], timer:now_diff(os:timestamp(), Timestamp) div 1000, ?SAMPLING),
             {Client2, Response};
         {_,  Response = {error, econnrefused}} ->
             {undefined, Response};
         {_,  Response = {error, closed}} ->
             {undefined, Response};
         {Client2, Response = {error, _}} ->
-            statsderl:timing(["cassanderl.call.error"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
+            statsderl:timing(["cassanderl.call.error"], timer:now_diff(os:timestamp(), Timestamp) div 1000, ?SAMPLING),
             {Client2, Response}
     catch
         Exception:Reason ->
             case {Exception, Reason} of
                 {throw, {Client2, Response = {exception, _}}} ->
-                    statsderl:timing(["cassanderl.call.exception"], timer:now_diff(os:timestamp(), Timestamp) div 1000, 0.005),
+                    statsderl:timing(["cassanderl.call.exception"], timer:now_diff(os:timestamp(), Timestamp) div 1000, ?SAMPLING),
                     {Client2, Response}
             end
     end.
