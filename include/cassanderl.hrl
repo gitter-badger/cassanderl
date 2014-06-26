@@ -25,6 +25,12 @@
 -define(cassandra_CqlResultType_VOID, 2).
 -define(cassandra_CqlResultType_INT, 3).
 
+-ifdef(namespaced_dicts).
+-type cassanderl_dict() :: dict:dict().
+-else.
+-type cassanderl_dict() :: dict().
+-endif.
+
 %% struct column
 
 -record(column, {name :: string() | binary(),
@@ -49,9 +55,9 @@
 
 %% struct columnOrSuperColumn
 
--record(columnOrSuperColumn, {column = #column{} :: #column{}, 
-                              super_column = #superColumn{} :: #superColumn{}, 
-                              counter_column = #counterColumn{} :: #counterColumn{}, 
+-record(columnOrSuperColumn, {column = #column{} :: #column{},
+                              super_column = #superColumn{} :: #superColumn{},
+                              counter_column = #counterColumn{} :: #counterColumn{},
                               counter_super_column = #counterSuperColumn{} :: #counterSuperColumn{}}).
 
 %% struct notFoundException
@@ -84,13 +90,13 @@
 
 %% struct columnParent
 
--record(columnParent, {column_family :: string(), 
+-record(columnParent, {column_family :: string(),
                        super_column :: string()}).
 
 %% struct columnPath
 
--record(columnPath, {column_family :: string(), 
-                     super_column :: string(), 
+-record(columnPath, {column_family :: string(),
+                     super_column :: string(),
                      column :: string()}).
 
 %% struct sliceRange
@@ -107,108 +113,108 @@
 
 %% struct indexExpression
 
--record(indexExpression, {column_name :: string(), 
-                          op :: integer(), 
+-record(indexExpression, {column_name :: string(),
+                          op :: integer(),
                           value :: string()}).
 
 %% struct indexClause
 
--record(indexClause, {expressions = [] :: list(), 
-                      start_key :: string(), 
+-record(indexClause, {expressions = [] :: list(),
+                      start_key :: string(),
                       count = 100 :: integer()}).
 
 %% struct keyRange
 
--record(keyRange, {start_key :: string(), 
-                   end_key :: string(), 
-                   start_token :: string(), 
-                   end_token :: string(), 
+-record(keyRange, {start_key :: string(),
+                   end_key :: string(),
+                   start_token :: string(),
+                   end_token :: string(),
                    count = 100 :: integer()}).
 
 %% struct keySlice
 
--record(keySlice, {key :: string(), 
+-record(keySlice, {key :: string(),
                    columns = [] :: list()}).
 
 %% struct keyCount
 
--record(keyCount, {key :: string(), 
+-record(keyCount, {key :: string(),
                    count :: integer()}).
 
 %% struct deletion
 
--record(deletion, {timestamp :: integer(), 
-                   super_column :: string(), 
+-record(deletion, {timestamp :: integer(),
+                   super_column :: string(),
                    predicate = #slicePredicate{} :: #slicePredicate{}}).
 
 %% struct mutation
 
--record(mutation, {column_or_supercolumn = #columnOrSuperColumn{} :: #columnOrSuperColumn{}, 
+-record(mutation, {column_or_supercolumn = #columnOrSuperColumn{} :: #columnOrSuperColumn{},
                    deletion = #deletion{} :: #deletion{}}).
 
 %% struct tokenRange
 
--record(tokenRange, {start_token :: string(), 
-                     end_token :: string(), 
+-record(tokenRange, {start_token :: string(),
+                     end_token :: string(),
                      endpoints = [] :: list()}).
 
 %% struct authenticationRequest
 
--record(authenticationRequest, {credentials = dict:new() :: dict()}).
+-record(authenticationRequest, {credentials = dict:new() :: cassanderl_dict()}).
 
 %% struct columnDef
 
--record(columnDef, {name :: string(), 
-                    validation_class :: string(), 
-                    index_type :: integer(), 
+-record(columnDef, {name :: string(),
+                    validation_class :: string(),
+                    index_type :: integer(),
                     index_name :: string()}).
 
 %% struct cfDef
 
--record(cfDef, {keyspace :: string(), 
-                name :: string(), 
-                column_type = "Standard" :: string(), 
-                comparator_type = "BytesType" :: string(), 
-                subcomparator_type :: string(), 
-                comment :: string(), 
-                row_cache_size = 0 :: float(), 
-                key_cache_size = 200000 :: float(), 
-                read_repair_chance = 1 :: float(), 
-                column_metadata = [] :: list(), 
-                gc_grace_seconds :: integer(), 
-                default_validation_class :: string(), 
-                id :: integer(), 
-                min_compaction_threshold :: integer(), 
-                max_compaction_threshold :: integer(), 
-                row_cache_save_period_in_seconds :: integer(), 
-                key_cache_save_period_in_seconds :: integer(), 
-                memtable_flush_after_mins :: integer(), 
-                memtable_throughput_in_mb :: integer(), 
-                memtable_operations_in_millions :: float(), 
-                replicate_on_write :: boolean(), 
-                merge_shards_chance :: float(), 
-                key_validation_class :: string(), 
-                row_cache_provider = "org.apache.cassandra.cache.ConcurrentLinkedHashCacheProvider" :: string(), 
+-record(cfDef, {keyspace :: string(),
+                name :: string(),
+                column_type = "Standard" :: string(),
+                comparator_type = "BytesType" :: string(),
+                subcomparator_type :: string(),
+                comment :: string(),
+                row_cache_size = 0 :: float(),
+                key_cache_size = 200000 :: float(),
+                read_repair_chance = 1 :: float(),
+                column_metadata = [] :: list(),
+                gc_grace_seconds :: integer(),
+                default_validation_class :: string(),
+                id :: integer(),
+                min_compaction_threshold :: integer(),
+                max_compaction_threshold :: integer(),
+                row_cache_save_period_in_seconds :: integer(),
+                key_cache_save_period_in_seconds :: integer(),
+                memtable_flush_after_mins :: integer(),
+                memtable_throughput_in_mb :: integer(),
+                memtable_operations_in_millions :: float(),
+                replicate_on_write :: boolean(),
+                merge_shards_chance :: float(),
+                key_validation_class :: string(),
+                row_cache_provider = "org.apache.cassandra.cache.ConcurrentLinkedHashCacheProvider" :: string(),
                 key_alias :: string()}).
 
 %% struct ksDef
 
--record(ksDef, {name :: string(), 
-                strategy_class :: string(), 
-                strategy_options = dict:new() :: dict(), 
-                replication_factor :: integer(), 
-                cf_defs = [] :: list(), 
+-record(ksDef, {name :: string(),
+                strategy_class :: string(),
+                strategy_options = dict:new() :: cassanderl_dict(),
+                replication_factor :: integer(),
+                cf_defs = [] :: list(),
                 durable_writes = true :: boolean()}).
 
 %% struct cqlRow
 
--record(cqlRow, {key :: string(), 
+-record(cqlRow, {key :: string(),
                  columns = [] :: list()}).
 
 %% struct cqlResult
 
--record(cqlResult, {type :: integer(), 
-                    rows = [] :: list(), 
+-record(cqlResult, {type :: integer(),
+                    rows = [] :: list(),
                     num :: integer()}).
 
 -endif.
