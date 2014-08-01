@@ -84,7 +84,8 @@ start_client(Hostname, Port, Keyspace) ->
                             Response;
                         {Client2, {ok, ok}} ->
                             {ok, Client2};
-                        {Client2, _} ->
+                        {Client2, Error} ->
+                            io:format("Error setting keyspace: ~p~n", [Error]),
                             {ok, Client2}
                     end
             end;

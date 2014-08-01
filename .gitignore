@@ -6,3 +6,4 @@ ebin
 *.beam
 *.swp
 *.swo
+.rebar
