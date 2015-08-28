@@ -1,5 +1,7 @@
 ## Cassanderl version 0.4 ##
 
+[![Join the chat at https://gitter.im/grammarly/cassanderl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/grammarly/cassanderl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Configuration ##
 
 To start cassanderl, you will need to configure a section in your
